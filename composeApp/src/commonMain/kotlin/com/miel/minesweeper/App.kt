@@ -121,7 +121,6 @@ fun App() {
                                 text = "Current Game Setup",
                                 modifier = Modifier.padding(sidePadding),
                                 style = MaterialTheme.typography.bodyLarge,
-                                // color = AppTheme.barContent,
                             )
                             Text(
                                 text = "Seed: ${game.hidden.seed}",
@@ -182,25 +181,7 @@ fun App() {
                             }
                         }
 
-                        if(!customSeed) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                IconButton(
-                                    onClick = { newSeed = Random.nextLong() },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(Res.drawable.randomize_icon),
-                                        contentDescription = "Randomize Icon",
-                                    ) // Icon
-                                } // IconButton
-                                Text(
-                                    text = "Seed: $newSeed",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(horizontal = sidePadding),
-                                )
-                            } // Row
-                        } else {
+                        if(customSeed) {
                             val textSeed = rememberTextFieldState("seed")
                             TextField(
                                 state = textSeed,
@@ -220,59 +201,117 @@ fun App() {
                                 }
                                 return total
                             }
-
                             newSeed = textToSeed(textSeed.text.toString())
+                        }
 
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if(!customSeed) {
+                                IconButton(
+                                    onClick = { newSeed = Random.nextLong() },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.randomize_icon),
+                                        contentDescription = "Randomize Icon",
+                                    ) // Icon
+                                } // IconButton
+                            }
                             Text(
                                 text = "Seed: $newSeed",
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(horizontal = sidePadding),
                             )
-                        }
+                        } // Row
+
 
                         Spacer(Modifier.height(spacer))
 
                         Text(
-                            text = "Density "
+                            text = "Density Options",
+                            style = MaterialTheme.typography.bodyMediumEmphasized,
+                            modifier = Modifier.padding(horizontal = sidePadding),
                         )
+
+                        var customDensity by remember{ mutableStateOf(false) }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                        ){
-                            Text(
-                                text = "Modes: ",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(sidePadding),
+                        ) {
+                            Switch(
+                                checked = customDensity,
+                                onCheckedChange = { customDensity = it },
+                                modifier = Modifier.padding(horizontal = sidePadding),
                             )
+                            if (!customDensity) {
+                                Text(
+                                    text = "Difficulty/Density Modes",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(horizontal = sidePadding),
+                                )
+                            } else {
+                                Text(
+                                    text = "Custom Density/Density (Not recommended)",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(horizontal = sidePadding),
+                                )
+                            }
+                        }
+                        if(customDensity){
+                            var sliderDensity by remember{ mutableStateOf(0f) }
+                            Slider(
+                                value = sliderDensity,
+                                onValueChange = { sliderDensity = it },
+                                valueRange = 0f..100f,
+                                modifier = Modifier
+                                    .fillMaxWidth(0.66f)
+                                    .padding(horizontal = sidePadding),
+                            )
+                            newDensity = sliderDensity/100.toDouble()
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ){
+                                Text(
+                                    text = "Modes: ",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(sidePadding),
+                                )
 
 
-                            SingleChoiceSegmentedButtonRow {
-                                modes.keys.forEachIndexed { index, key ->
-                                    val textColor = if (selectedDifficulty == index) {
-                                        AppConstants.barColor
-                                    } else {
-                                        AppConstants.barContent
-                                    }
-                                    SegmentedButton(
-                                        shape = SegmentedButtonDefaults.itemShape(
-                                            index = index,
-                                            count = modes.size,
-                                        ),
-                                        onClick = { selectedDifficulty = index; newDensity = modes[key]!! },
-                                        selected = selectedDifficulty == index,
-                                        label = { Text(
-                                            text = key,
-                                            color = textColor
-                                        ) }
-                                    ) // SegmentedButton
-                                } // options
-                            } // SingleChoiceSegmentedButtonRow
-                        } // Row
+                                SingleChoiceSegmentedButtonRow {
+                                    modes.keys.forEachIndexed { index, key ->
+                                        val textColor = if (selectedDifficulty == index) {
+                                            AppConstants.barColor
+                                        } else {
+                                            AppConstants.barContent
+                                        }
+                                        SegmentedButton(
+                                            shape = SegmentedButtonDefaults.itemShape(
+                                                index = index,
+                                                count = modes.size,
+                                            ),
+                                            onClick = { selectedDifficulty = index; newDensity = modes[key]!! },
+                                            selected = selectedDifficulty == index,
+                                            label = { Text(
+                                                text = key,
+                                                color = textColor
+                                            ) }
+                                        ) // SegmentedButton
+                                    } // options
+                                } // SingleChoiceSegmentedButtonRow
+                            } // Row
+                        }
+
+
                         Text(
                             text = "Density: $newDensity",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(horizontal = sidePadding),
                         )
+
+                        Spacer(Modifier.height(spacer))
+
                         Row(
                             horizontalArrangement = Arrangement.End,
                         ) {
