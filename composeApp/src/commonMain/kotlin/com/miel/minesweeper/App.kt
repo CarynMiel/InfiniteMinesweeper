@@ -26,10 +26,13 @@ import kotlinx.coroutines.launch
 import kotlin.math.*
 import androidx.compose.material3.Icon
 
+import androidx.compose.foundation.text.input.*
+import kotlin.math.pow
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.text.input.rememberTextFieldState
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +46,7 @@ import minesweeper_v6.composeapp.generated.resources.settings_icon
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 @Preview
 fun App() {
@@ -80,7 +83,7 @@ fun App() {
                 ModalDrawerSheet (
                     drawerContentColor = AppConstants.barContent,
                     drawerContainerColor = AppConstants.barColor,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ){
                     Column(
                         modifier = Modifier
@@ -148,23 +151,90 @@ fun App() {
                             modifier = Modifier.padding(sidePadding),
                         )
 
+                        Text(
+                            text = "Seed Options",
+                            style = MaterialTheme.typography.bodyMediumEmphasized,
+                            modifier = Modifier.padding(horizontal = sidePadding),
+                        )
+
+                        var customSeed by remember{ mutableStateOf(false) }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                        ){
-                            IconButton(
-                                onClick = { newSeed = Random.nextLong() },
+                        ) {
+                            Switch(
+                                checked = customSeed,
+                                onCheckedChange = { customSeed = it },
+                                modifier = Modifier.padding(horizontal = sidePadding),
+                            )
+                            if (customSeed) {
+                                Text(
+                                    text = "Randomized Seed",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(horizontal = sidePadding),
+                                )
+                            } else {
+                                Text(
+                                    text = "Custom Seed",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(horizontal = sidePadding),
+                                )
+                            }
+                        }
+
+                        if(!customSeed) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(
-                                    painter = painterResource(Res.drawable.randomize_icon),
-                                    contentDescription = "Randomize Icon",
-                                ) // Icon
-                            } // IconButton
+                                IconButton(
+                                    onClick = { newSeed = Random.nextLong() },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(Res.drawable.randomize_icon),
+                                        contentDescription = "Randomize Icon",
+                                    ) // Icon
+                                } // IconButton
+                                Text(
+                                    text = "Seed: $newSeed",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(horizontal = sidePadding),
+                                )
+                            } // Row
+                        } else {
+                            val textSeed = rememberTextFieldState("seed")
+                            TextField(
+                                state = textSeed,
+                                placeholder = { Text("Seed") },
+                                lineLimits = TextFieldLineLimits.SingleLine,
+                                inputTransformation = InputTransformation.maxLength(20),
+                                modifier = Modifier.padding(horizontal = sidePadding),
+                            )
+                            fun textToSeed(text: String): Long {
+                                var total: Long = 0
+
+                                if(text.toIntOrNull() != null) {return text.toLong()}
+
+                                for(index in 0..<text.length) {
+                                    val multiplier = 128.toDouble().pow(text.length - 1 - index)
+                                    total += text.toCharArray()[index].code * multiplier.toLong()
+                                }
+                                return total
+                            }
+
+                            newSeed = textToSeed(textSeed.text.toString())
+
                             Text(
                                 text = "Seed: $newSeed",
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(horizontal = sidePadding),
                             )
-                        } // Row
+                        }
+
+                        Spacer(Modifier.height(spacer))
+
+                        Text(
+                            text = "Density "
+                        )
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -213,9 +283,12 @@ fun App() {
                                     frame++
                                     games++
                                 }, // onClick
-                                content = { Text("New Game") }
-                            )
-                        }
+                                content = { Text("New Game") },
+                                modifier = Modifier.padding(sidePadding),
+                            ) // Button
+                        }// Row
+
+
                     } // Column
                 } // ModalDrawerSheet
             }, // drawerContent
